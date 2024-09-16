@@ -1,75 +1,53 @@
-const OpenAI = require("openai");
 const fs = require("fs");
-require("dotenv").config();
+const { OpenAI, AzureOpenAI, AzureKeyCredential } = require("openai");
+require("dotenv").config({ path: "../.env" });
 
-(async () => {
-  const openai = new OpenAI();
+// Read CSV
+const csv = fs.readFileSync("Feature_List.csv", "utf8");
 
-  // Read CSV
-  const csv = fs.readFileSync("Feature-List.csv", "utf8");
+const systemPrompt =
+  "You are helpful assistant tasked with assigning items to the relevant feature. Here are the features:\n" +
+  csv;
 
-  const systemPrompt =
-    "You are helpful assistant tasked with assigning items to the relevant feature. Here are the features:" +
-    csv;
+const taskName = "Fix bug in vscode.dev";
 
-  const completion = await openai.chat.completions.create({
+const userMessage = `Please suggest 1-3 parent features for the following product work item: '${taskName}'`;
+
+async function main() {
+  // Object.keys(process.env)
+  //   .filter((key) => key.includes("AZURE"))
+  //   .forEach((key) => console.log(`${key}: '${process.env[key]}'`));
+
+  // const client = new AzureOpenAI({
+  //   apiKey: process.env.AZURE_OPENAI_API_KEY,
+  //   apiVersion: "2023-03-15-preview", // Ensure this matches the correct API version
+  //   baseURL: process.env.AZURE_OPENAI_ENDPOINT,
+  //   deployment: process.env.AZURE_OPENAI_DEPLOYMENT,
+  // });
+
+  const client = new OpenAI({
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+  });
+
+  const messages = [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: userMessage,
+    },
+  ];
+
+  const completion = await client.chat.completions.create({
     model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: "Write a haiku about recursion in programming.",
-      },
-    ],
+    messages,
   });
 
   console.log(completion.choices[0].message);
+}
 
-  const { OpenAIClient } = require("@azure/openai");
-  const { DefaultAzureCredential } = require("@azure/identity");
-
-  async function main() {
-    const endpoint = "https://myaccount.openai.azure.com/";
-    const client = new OpenAIClient(endpoint, new DefaultAzureCredential());
-
-    const deploymentId = "gpt-35-turbo";
-
-    const messages = [
-      {
-        role: "user",
-        content: "What's the most common customer feedback about our product?",
-      },
-    ];
-
-    console.log(`Messages: ${messages.map((m) => m.content).join("\n")}`);
-
-    const events = await client.streamChatCompletions(deploymentId, messages, {
-      maxTokens: 128,
-      azureExtensionOptions: {
-        extensions: [
-          {
-            type: "AzureCognitiveSearch",
-            endpoint: "<Azure Cognitive Search endpoint>",
-            key: "<Azure Cognitive Search admin key>",
-            indexName: "<Azure Cognitive Search index name>",
-          },
-        ],
-      },
-    });
-    for await (const event of events) {
-      for (const choice of event.choices) {
-        const delta = choice.delta?.content;
-        if (delta !== undefined) {
-          console.log(`Chatbot: ${delta}`);
-        }
-      }
-    }
-  }
-
-  main().catch((err) => {
-    console.error("The sample encountered an error:", err);
-  });
-})();
+main().catch((err) => {
+  console.error("The sample encountered an error:", err);
+});
