@@ -1,0 +1,12 @@
+{
+    "manifest_version": 3,
+    "name": "ADO Backlog Organizer",
+    "version": "2.2",
+    "description": "ADO Backlog Organizer",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "permissions": [
+      "storage"
+    ]
+  }
