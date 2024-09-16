@@ -1,0 +1,17 @@
+{
+  "name": "ado-backlog-organizer-playground",
+  "version": "0.0.0",
+  "description": "Testing Azure OpenAI features for organizing your Azure DevOps backlog",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/openai": "^2.0.0-beta.2",
+    "dotenv": "^16.4.5",
+    "openai": "^4.61.1"
+  }
+}

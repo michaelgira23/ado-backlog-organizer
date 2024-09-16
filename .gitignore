@@ -1,3 +1,6 @@
+# For ADO Backlog Organizer
+*.csv
+
 # Logs
 logs
 *.log
