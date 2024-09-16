@@ -1,12 +1,12 @@
 {
-    "manifest_version": 3,
-    "name": "ADO Backlog Organizer",
-    "version": "2.2",
-    "description": "ADO Backlog Organizer",
-    "action": {
-      "default_popup": "popup.html"
-    },
-    "permissions": [
-      "storage"
-    ]
-  }
+  "$schema": "http://json.schemastore.org/chrome-manifest",
+  "manifest_version": 3,
+  "name": "ADO Backlog Organizer",
+  "version": "2.2",
+  "description": "ADO Backlog Organizer",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "storage", "tabs", "identity", "identity.email"],
+  "incognito": "not_allowed"
+}
