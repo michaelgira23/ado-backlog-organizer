@@ -24,7 +24,7 @@ const msalInstance = new msal.PublicClientApplication({
 // Set currently logged in account
 const accounts = msalInstance.getAllAccounts();
 if (accounts.length) {
-  document.getElementById("username").innerHTML = accounts[0].username;
+  document.getElementById("username").textContent = accounts[0].username;
 }
 
 /**
@@ -33,7 +33,7 @@ if (accounts.length) {
 getSignedInUser().then(async (user) => {
   if (user) {
     const signInHintButton = document.getElementById("sign-in-hint");
-    signInHintButton.innerHTML = `Sign In (w/ ${user.email})`;
+    signInHintButton.textContent = `Sign In (w/ ${user.email})`;
     signInHintButton.addEventListener("click", async () => {
       const url = await getLoginUrl({
         loginHint: user.email,
@@ -41,7 +41,7 @@ getSignedInUser().then(async (user) => {
 
       const result = await launchWebAuthFlow(url);
 
-      document.getElementById("username").innerHTML = result.account.username;
+      document.getElementById("username").textContent = result.account.username;
     });
     signInHintButton.classList.remove("hidden");
   }
@@ -55,15 +55,15 @@ document.getElementById("sign-in").addEventListener("click", async () => {
 
   const result = await launchWebAuthFlow(url);
 
-  document.getElementById("username").innerHTML = result.account.username;
+  document.getElementById("username").textContent = result.account.username;
 });
 
 /**
  * Sign out button
  */
 document.getElementById("sign-out").addEventListener("click", async () => {
-  document.getElementById("username").innerHTML = "";
-  document.getElementById("displayname").innerHTML = "";
+  document.getElementById("username").textContent = "";
+  document.getElementById("displayname").textContent = "";
 
   const logoutUrl = await getLogoutUrl();
 
@@ -76,7 +76,7 @@ document.getElementById("sign-out").addEventListener("click", async () => {
 document.getElementById("call-graph").addEventListener("click", async () => {
   const graphResult = await callGraphMeEndpoint();
 
-  document.getElementById("displayname").innerHTML = graphResult.displayName;
+  document.getElementById("displayname").textContent = graphResult;
 });
 
 /**
@@ -118,11 +118,23 @@ async function getLogoutUrl(request) {
  */
 async function callGraphMeEndpoint() {
   const { accessToken } = await acquireToken({
-    scopes: ["user.read"],
+    scopes: [
+      // "user_impersonation",
+      // "vso.work",
+      // "vso.work_write",
+      // "499b84ac-1321-427f-aa17-267ca6975798/vso.work_write",
+      //   "user.read",
+      //   "'499b84ac-1321-427f-aa17-267ca6975798/user_impersonation'",
+    ], // 499b84ac-1321-427f-aa17-267ca6975798/.default
     account: msalInstance.getAllAccounts()[0],
   });
 
-  return callMSGraph("https://graph.microsoft.com/v1.0/me", accessToken);
+  //   return callMSGraph("https://graph.microsoft.com/v1.0/me", accessToken);
+  return callAdo(
+    "https://dev.azure.com/hackathonADO2024/ADoManagement/_apis/wit/wiql?api-version=7.0",
+    accessToken,
+    "SELECT [System.Id], [System.Title], [System.State] FROM WorkItems WHERE [System.State] <> 'Closed' ORDER BY [System.CreatedDate] DESC"
+  );
 }
 
 /**
@@ -141,6 +153,36 @@ async function callMSGraph(endpoint, accessToken) {
 
   return fetch(endpoint, options)
     .then((response) => response.json())
+    .catch((error) => console.log(error));
+}
+
+// curl -u :PAT_TOKEN \
+// -X POST \
+// -H "Content-Type: application/json" \
+// -d "{"query":"SELECT [System.Id], [System.Title], [System.State] FROM WorkItems WHERE [System.WorkItemType] = 'Feature'"}" \
+// https://dev.azure.com/hackathonADO2024/ADoManagement/_apis/wit/wiql?api-version=7.0
+
+// https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query-by-wiql?view=azure-devops-rest-7.1&tabs=HTTP
+
+/**
+ * Makes an http request to Azure DevOps REST API endpoint
+ */
+async function callAdo(endpoint, accessToken, query) {
+  const headers = new Headers();
+  //   const authorization = `Bearer ${accessToken}`;
+  const authorization = "Basic " + btoa("" + ":" + accessToken);
+
+  headers.append("Authorization", authorization);
+  headers.append("Content-Type", "application/json");
+
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query }),
+  };
+
+  return fetch(endpoint, options)
+    .then((response) => response.text())
     .catch((error) => console.log(error));
 }
 
