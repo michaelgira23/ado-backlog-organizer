@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   // Do something with the message!
   console.log(request);
 
@@ -33,6 +33,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     project = pathParts[1];
   }
 
+  //   try {
+  //     console.log("getting area path");
+  //     areaPath = await getAreaPath();
+  //   } catch (err) {
+  //     console.error("Error getting area path", err);
+  //   }
+
   console.log("Parsed", {
     organization,
     project,
@@ -45,3 +52,46 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     areaPath,
   });
 });
+
+function getAreaPath() {
+  return new Promise((resolve, reject) => {
+    // Open the database
+    let request = indexedDB.open("wit");
+
+    request.onsuccess = function (event) {
+      let db = event.target.result;
+
+      // Create a transaction
+      let transaction = db.transaction(["metaDataCache"], "readonly");
+
+      // Get the object store
+      let objectStore = transaction.objectStore("metaDataCache");
+
+      // Use a cursor to iterate over all records
+      let cursorRequest = objectStore.openCursor();
+
+      cursorRequest.onsuccess = function (event) {
+        let cursor = event.target.result;
+        if (cursor) {
+          console.log(
+            "Key: " + cursor.key + ", Value: " + JSON.stringify(cursor.value)
+          );
+          cursor.continue();
+        } else {
+          console.log("No more entries!");
+        }
+        resolve();
+      };
+
+      cursorRequest.onerror = function (event) {
+        console.error("Cursor request error: " + event.target.errorCode);
+        reject(event);
+      };
+    };
+
+    request.onerror = function (event) {
+      console.error("Database error: " + event.target.errorCode);
+      reject(event);
+    };
+  });
+}

@@ -7,7 +7,7 @@ import {
   Option,
   Textarea,
   Title2,
-  Title3
+  Title3,
 } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
 
@@ -22,21 +22,20 @@ const workItemTypes = [
   "User Story",
 ];
 
-
 const useStyles = makeStyles({
   root: {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
     maxWidth: "400px",
-    padding: "16px"
+    padding: "16px",
   },
   form: {
-    gap: "2px"
+    gap: "2px",
   },
   search: {
-    marginTop: "20px"
-  }
+    marginTop: "20px",
+  },
 });
 
 function App() {
@@ -49,16 +48,14 @@ function App() {
   const [areaPathName, setAreaPathName] = useState("");
 
   useEffect(() => {
-    chrome.runtime.onMessage.addListener(
-      (request: any, sender: any, sendResponse: any) => {
-        console.log(
-          sender.tab
-            ? "from a content script:" + sender.tab.url
-            : "from the extension"
-        );
-        console.log(request);
-      }
-    );
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any) => {
+      chrome.tabs.sendMessage(tabs[0].id, "get-params", (response: any) => {
+        // do something with the response if you want.
+        console.log(response);
+        setOrganizationName(response.organization);
+        setProjectName(response.project);
+      });
+    });
   }, []);
 
   const search = () => {
@@ -90,12 +87,8 @@ function App() {
           />
         </Field>
         <Field label="Work Item Type">
-          <Dropdown
-            multiselect={true}
-            placeholder="Select work item type(s)"
-          >
-            
-            <Option key="all">All Types</Option>
+          <Dropdown multiselect={true} placeholder="Select work item type(s)">
+            {/* <Option key="all">All Types</Option> */}
             {workItemTypes.map((option) => (
               <Option key={option}>{option}</Option>
             ))}
@@ -111,7 +104,7 @@ function App() {
         <Field label="Project Name">
           <Input
             placeholder="Project Name (ex: One)"
-            value={organizationName}
+            value={projectName}
             onChange={(event) => setProjectName(event.target.value)}
           />
         </Field>
@@ -130,7 +123,6 @@ function App() {
       <div className="resultsSection">
         <Title3>Suggested Parents</Title3>
       </div>
-
     </div>
   );
 }
