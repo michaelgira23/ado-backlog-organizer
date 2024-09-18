@@ -40,12 +40,20 @@ const useStyles = makeStyles({
 
 function App() {
   const styles = useStyles();
+
+  // Form state
   const [workItemTitle, setWorkItemTitle] = useState("");
   const [workItemDescription, setWorkItemDescription] = useState("");
-  const [selectedWorkItemTypes, setSelectedWorkItemTypes] = useState([]);
+  const [selectedWorkItemTypes, setSelectedWorkItemTypes] = useState<string[]>(
+    []
+  );
   const [organizationName, setOrganizationName] = useState("");
   const [projectName, setProjectName] = useState("");
   const [areaPathName, setAreaPathName] = useState("");
+  const [pat, setPat] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState([]);
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any) => {
@@ -66,6 +74,38 @@ function App() {
     console.log("Organization Name:", organizationName);
     console.log("Project Name:", projectName);
     console.log("Area Path Name:", areaPathName);
+
+    const workItemBitArray = workItemTypes.map((type) =>
+      selectedWorkItemTypes.includes(type) ? 1 : 0
+    );
+
+    setIsLoading(true);
+
+    fetch("https://adobacklogorganizermg.azurewebsites.net/api/openTasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        AccessToken: pat,
+        OrganizationName: organizationName,
+        ProjectName: projectName,
+        WorkItemTitle: workItemTitle,
+        WorkItemDescription: workItemDescription,
+        items: workItemBitArray,
+        AreaPath: areaPathName,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setResults(data.workItems);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -122,8 +162,20 @@ function App() {
             onChange={(event) => setAreaPathName(event.target.value)}
           />
         </Field>
-        <Button appearance="primary" className={styles.search} onClick={search}>
-          Search
+        <Field label="Personal Access Token">
+          <Input
+            type="password"
+            value={pat}
+            onChange={(event) => setPat(event.target.value)}
+          />
+        </Field>
+        <Button
+          appearance="primary"
+          className={styles.search}
+          onClick={search}
+          disabled={isLoading}
+        >
+          {isLoading ? "Loading..." : "Search"}
         </Button>
       </form>
 
