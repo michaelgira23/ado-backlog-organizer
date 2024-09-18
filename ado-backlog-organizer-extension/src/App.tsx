@@ -62,7 +62,7 @@ function App() {
     console.log("Form submitted");
     console.log("Work Item Title:", workItemTitle);
     console.log("Work Item Description:", workItemDescription);
-    console.log("Selected Work Item Types:", workItemTypes);
+    console.log("Selected Work Item Types:", selectedWorkItemTypes);
     console.log("Organization Name:", organizationName);
     console.log("Project Name:", projectName);
     console.log("Area Path Name:", areaPathName);
@@ -87,7 +87,14 @@ function App() {
           />
         </Field>
         <Field label="Work Item Type">
-          <Dropdown multiselect={true} placeholder="Select work item type(s)">
+          <Dropdown
+            multiselect={true}
+            selectedOptions={selectedWorkItemTypes}
+            onOptionSelect={(event, data) =>
+              setSelectedWorkItemTypes(data.selectedOptions as any)
+            }
+            placeholder="Select work item type(s)"
+          >
             {/* <Option key="all">All Types</Option> */}
             {workItemTypes.map((option) => (
               <Option key={option}>{option}</Option>
