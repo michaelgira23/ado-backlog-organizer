@@ -7,6 +7,7 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace OpenTasks
 {
@@ -47,16 +48,35 @@ namespace OpenTasks
         {
             var credentials = new VssBasicCredential(string.Empty, requestModel.AccessToken);
 
-            string WorkItemType = null;
+            Dictionary<int, string> adoItemsDictionary = new Dictionary<int, string>();
+            adoItemsDictionary[1] = "Epic";
+            adoItemsDictionary[2] = "Feature";
+            adoItemsDictionary[3] = "User Story";
+            adoItemsDictionary[4] = "Task";
+            adoItemsDictionary[5] = "Bug";
 
-            //for (int i = 0; i < requestModel.items.Count; i++)
-            //{
-            //    WorkItemType = WorkItemType + " " + requestModel.items[i];
-            //    if (i + 1 < requestModel.items.Count)
-            //    {
-            //        WorkItemType = WorkItemType + " " + " OR ";
-            //    }
-            //}
+            StringBuilder selectedADOitems = null;
+
+            if (requestModel.items == null || requestModel.items.Count == 0)
+            {
+                selectedADOitems = new StringBuilder("('Feature', 'User Story', 'Epic', 'Task', 'Bug')");
+            }
+            else
+            {
+                selectedADOitems = new StringBuilder("(");
+                for (int i = 0; i < requestModel.items.Count; i++)
+                {
+                    selectedADOitems.Append("'").Append(adoItemsDictionary.GetValueOrDefault(Convert.ToInt32(requestModel.items[i]))).Append("'");
+                    if (i + 1 < requestModel.items.Count)
+                    {
+                        selectedADOitems.Append(",");
+                    }
+                }
+
+                selectedADOitems.Append(")");
+            }
+
+            string str = selectedADOitems.ToString();
 
             // create a wiql object and build our query
             var wiql = new Wiql()
@@ -64,7 +84,7 @@ namespace OpenTasks
                 // NOTE: Even if other columns are specified, only the ID & URL are available in the WorkItemReference
                 Query = "Select [Id] " +
                         "From WorkItems " +
-                        "Where [Work Item Type] = 'Task' " +
+                        "Where [Work Item Type] IN " +  selectedADOitems.ToString()  + 
                         "And [System.TeamProject] = '" + requestModel.OrganizationName + "' " +
                         "And [System.State] <> 'Closed' " +
                         "Order By [State] Asc, [Changed Date] Desc",

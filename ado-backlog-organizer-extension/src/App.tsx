@@ -9,7 +9,7 @@ import {
   Title2,
   Title3
 } from "@fluentui/react-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const workItemTypes = [
   "Bug",
@@ -47,6 +47,19 @@ function App() {
   const [organizationName, setOrganizationName] = useState("");
   const [projectName, setProjectName] = useState("");
   const [areaPathName, setAreaPathName] = useState("");
+
+  useEffect(() => {
+    chrome.runtime.onMessage.addListener(
+      (request: any, sender: any, sendResponse: any) => {
+        console.log(
+          sender.tab
+            ? "from a content script:" + sender.tab.url
+            : "from the extension"
+        );
+        console.log(request);
+      }
+    );
+  }, []);
 
   const search = () => {
     console.log("Form submitted");
