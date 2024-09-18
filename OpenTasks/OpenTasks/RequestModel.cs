@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
 
 namespace OpenTasks
 {
@@ -11,7 +8,7 @@ namespace OpenTasks
         public string OrganizationName { get; set; }
         public string ProjectName { get; set; }
         public string AccessToken { get; set; }
-
+        public List<Object> items { get; set; }
 
     }
 }
