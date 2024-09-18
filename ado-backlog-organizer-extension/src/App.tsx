@@ -8,7 +8,7 @@ import {
   Textarea,
   Title2,
 } from "@fluentui/react-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const workItemTypes = [
   "Bug",
@@ -40,6 +40,19 @@ const useStyles = makeStyles({
 function App() {
   const styles = useStyles();
   const [workItemTitle, setWorkItemTitle] = useState("");
+
+  useEffect(() => {
+    chrome.runtime.onMessage.addListener(
+      (request: any, sender: any, sendResponse: any) => {
+        console.log(
+          sender.tab
+            ? "from a content script:" + sender.tab.url
+            : "from the extension"
+        );
+        console.log(request);
+      }
+    );
+  }, []);
 
   const search = () => {
     console.log("Form submitted");
