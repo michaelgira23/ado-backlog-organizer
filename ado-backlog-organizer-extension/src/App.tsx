@@ -56,6 +56,49 @@ function App() {
   const [results, setResults] = useState([]);
 
   useEffect(() => {
+    try {
+      const storedStateStr = localStorage.getItem("ADO-BACKLOG-ORGANIZER");
+      if (storedStateStr) {
+        const storedState = JSON.parse(storedStateStr);
+        setWorkItemTitle(storedState.workItemTitle);
+        setWorkItemDescription(storedState.workItemDescription);
+        setSelectedWorkItemTypes(storedState.selectedWorkItemTypes);
+        setOrganizationName(storedState.organizationName);
+        setProjectName(storedState.projectName);
+        setAreaPathName(storedState.areaPathName);
+        setPat(storedState.pat);
+      }
+    } catch (err) {
+      console.error("Error loading state from local storage:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const state = {
+        workItemTitle,
+        workItemDescription,
+        selectedWorkItemTypes,
+        organizationName,
+        projectName,
+        areaPathName,
+        pat,
+      };
+      localStorage.setItem("ADO-BACKLOG-ORGANIZER", JSON.stringify(state));
+    } catch (err) {
+      console.error("Error saving state to local storage:", err);
+    }
+  }, [
+    workItemTitle,
+    workItemDescription,
+    selectedWorkItemTypes,
+    organizationName,
+    projectName,
+    areaPathName,
+    pat,
+  ]);
+
+  useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any) => {
       chrome.tabs.sendMessage(tabs[0].id, "get-params", (response: any) => {
         // do something with the response if you want.
