@@ -1,8 +1,10 @@
 import {
   Button,
+  Divider,
   Dropdown,
   Field,
   Input,
+  Link,
   makeStyles,
   Option,
   Textarea,
@@ -36,7 +38,24 @@ const useStyles = makeStyles({
   search: {
     marginTop: "20px",
   },
+  resultsList: {
+    listStyleType: "none",
+    margin: "0px",
+    padding: "10px 0 0 0",
+  },
+  resultsItem: {
+    margin: "10px 0 10px 0",
+    fontSize: "16px"
+  },
+  resultId: {
+
+  },
+  resultName: {
+    paddingLeft: "15px"
+  }
 });
+
+
 
 function App() {
   const styles = useStyles();
@@ -54,7 +73,28 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>([]);
+  //const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>([
+    {"id": 10000000, "name": "Feature Title 1", "link": "https://dev.azure.com/msazure/One/_workitems/edit/10000000/"},
+    {"id": 20000000, "name": "Feature Title 2", "link": "https://dev.azure.com/msazure/One/_workitems/edit/20000000/"},
+    {"id": 30000000, "name": "Feature Title 3", "link": "https://dev.azure.com/msazure/One/_workitems/edit/30000000/"},
+  ]);
+
+  function ResultItem({result}: {result: any}) {
+    return (
+      <li>
+        <div className={styles.resultsItem}>
+          <span className={styles.resultId}>
+            <Link href={result.link}>
+              {result.id}
+            </Link>
+          </span>
+          <span className={styles.resultName}>{result.name}</span>
+        </div>
+        <Divider />
+      </li>
+    );
+  }
 
   useEffect(() => {
     try {
@@ -168,7 +208,7 @@ function App() {
           />
         </Field>
         <Field label="Work Item Description">
-          <Input
+          <Textarea
             placeholder="Optional Description"
             value={workItemDescription}
             onChange={(event) => setWorkItemDescription(event.target.value)}
@@ -227,13 +267,15 @@ function App() {
         </Button>
       </form>
 
-      <div className="resultsSection">
+      <div>
         <Title3>Suggested Parents</Title3>
         {error && <div>Error: {error}</div>}
+        <ul className={styles.resultsList}>
         {results &&
           results.map((result: any) => (
-            <div key={result.id}>{JSON.stringify(result)}</div>
+            <ResultItem result={result}/>
           ))}
+        </ul>
       </div>
     </div>
   );
