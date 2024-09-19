@@ -7,6 +7,7 @@ import {
   Link,
   makeStyles,
   Option,
+  Spinner,
   Textarea,
   Title2,
   Title3,
@@ -24,6 +25,24 @@ const workItemTypes = [
   "User Story",
 ];
 
+const exampleResults = [
+  {
+    id: 10000000,
+    name: "Feature Title 1",
+    link: "https://dev.azure.com/msazure/One/_workitems/edit/10000000/",
+  },
+  {
+    id: 20000000,
+    name: "Feature Title 2",
+    link: "https://dev.azure.com/msazure/One/_workitems/edit/20000000/",
+  },
+  {
+    id: 30000000,
+    name: "Feature Title 3",
+    link: "https://dev.azure.com/msazure/One/_workitems/edit/30000000/",
+  },
+];
+
 const useStyles = makeStyles({
   root: {
     display: "flex",
@@ -33,10 +52,13 @@ const useStyles = makeStyles({
     padding: "16px",
   },
   form: {
-    gap: "2px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
   },
   search: {
     marginTop: "20px",
+    width: "100%",
   },
   resultsList: {
     listStyleType: "none",
@@ -45,17 +67,13 @@ const useStyles = makeStyles({
   },
   resultsItem: {
     margin: "10px 0 10px 0",
-    fontSize: "16px"
+    fontSize: "16px",
   },
-  resultId: {
-
-  },
+  resultId: {},
   resultName: {
-    paddingLeft: "15px"
-  }
+    paddingLeft: "15px",
+  },
 });
-
-
 
 function App() {
   const styles = useStyles();
@@ -73,21 +91,14 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  //const [results, setResults] = useState<any[]>([]);
-  const [results, setResults] = useState<any[]>([
-    {"id": 10000000, "name": "Feature Title 1", "link": "https://dev.azure.com/msazure/One/_workitems/edit/10000000/"},
-    {"id": 20000000, "name": "Feature Title 2", "link": "https://dev.azure.com/msazure/One/_workitems/edit/20000000/"},
-    {"id": 30000000, "name": "Feature Title 3", "link": "https://dev.azure.com/msazure/One/_workitems/edit/30000000/"},
-  ]);
+  const [results, setResults] = useState<any[]>([]);
 
-  function ResultItem({result}: {result: any}) {
+  function ResultItem({ result }: { result: any }) {
     return (
       <li>
         <div className={styles.resultsItem}>
           <span className={styles.resultId}>
-            <Link href={result.link}>
-              {result.id}
-            </Link>
+            <Link href={result.link}>{result.id}</Link>
           </span>
           <span className={styles.resultName}>{result.name}</span>
         </div>
@@ -166,34 +177,40 @@ function App() {
     setIsLoading(true);
     setError(null);
 
-    fetch("https://adobacklogorganizermg.azurewebsites.net/api/openTasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        AccessToken: pat,
-        OrganizationName: organizationName,
-        ProjectName: projectName,
-        WorkItemTitle: workItemTitle,
-        WorkItemDescription: workItemDescription,
-        items: workItemBitArray,
-        AreaPath: areaPathName,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setResults(data);
-        }
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-        setError(`Error fetching data. Please try again later. (${error})`);
-      });
+    // Mock backend for now
+    setTimeout(() => {
+      setResults(exampleResults);
+      setIsLoading(false);
+    }, 5000);
+
+    // fetch("https://adobacklogorganizermg.azurewebsites.net/api/openTasks", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     Accept: "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     AccessToken: pat,
+    //     OrganizationName: organizationName,
+    //     ProjectName: projectName,
+    //     WorkItemTitle: workItemTitle,
+    //     WorkItemDescription: workItemDescription,
+    //     items: workItemBitArray,
+    //     AreaPath: areaPathName,
+    //   }),
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     if (Array.isArray(data)) {
+    //       setResults(data);
+    //     }
+    //     setIsLoading(false);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching data:", error);
+    //     setIsLoading(false);
+    //     setError(`Error fetching data. Please try again later. (${error})`);
+    //   });
   };
 
   return (
@@ -259,6 +276,7 @@ function App() {
         </Field>
         <Button
           appearance="primary"
+          size="large"
           className={styles.search}
           onClick={search}
           disabled={isLoading}
@@ -267,16 +285,19 @@ function App() {
         </Button>
       </form>
 
-      <div>
-        <Title3>Suggested Parents</Title3>
-        {error && <div>Error: {error}</div>}
-        <ul className={styles.resultsList}>
-        {results &&
-          results.map((result: any) => (
-            <ResultItem result={result}/>
-          ))}
-        </ul>
-      </div>
+      {isLoading && <Spinner label="Good things come to those who wait..." />}
+
+      {error && <div>Error: {error}</div>}
+
+      {results && (
+        <div>
+          <Title3>Suggested Parents</Title3>
+          <ul className={styles.resultsList}>
+            {results &&
+              results.map((result: any) => <ResultItem result={result} />)}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
