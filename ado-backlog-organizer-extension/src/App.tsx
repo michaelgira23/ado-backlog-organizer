@@ -53,7 +53,8 @@ function App() {
   const [pat, setPat] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState([]);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<any[]>([]);
 
   useEffect(() => {
     try {
@@ -123,6 +124,7 @@ function App() {
     );
 
     setIsLoading(true);
+    setError(null);
 
     fetch("https://adobacklogorganizermg.azurewebsites.net/api/openTasks", {
       method: "POST",
@@ -142,12 +144,15 @@ function App() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setResults(data.workItems);
+        if (Array.isArray(data)) {
+          setResults(data);
+        }
         setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
         setIsLoading(false);
+        setError(`Error fetching data. Please try again later. (${error})`);
       });
   };
 
@@ -224,6 +229,11 @@ function App() {
 
       <div className="resultsSection">
         <Title3>Suggested Parents</Title3>
+        {error && <div>Error: {error}</div>}
+        {results &&
+          results.map((result: any) => (
+            <div key={result.id}>{JSON.stringify(result)}</div>
+          ))}
       </div>
     </div>
   );
