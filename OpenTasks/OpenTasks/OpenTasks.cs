@@ -7,9 +7,7 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
-using NUnit.Framework.Internal;
 using System.Text;
-using static Google.Protobuf.Compiler.CodeGeneratorResponse.Types;
 
 namespace OpenTasks
 {
@@ -75,7 +73,13 @@ namespace OpenTasks
                     }
                   
                 }
+                
+                if (selectedADOitems.ToString()[selectedADOitems.Length-1] == ',')
+                {
+                    selectedADOitems.Remove(selectedADOitems.Length - 1, 1);
+                }
 
+                selectedADOitems.ToString().TrimEnd(',');
                 selectedADOitems.Append(")");
             }
 
@@ -85,7 +89,7 @@ namespace OpenTasks
                 // NOTE: Even if other columns are specified, only the ID & URL are available in the WorkItemReference
                 Query = "Select [Id] " +
                         "From WorkItems " +
-                        "Where [Work Item Type] IN " +  selectedADOitems.ToString()  + 
+                        "Where [Work Item Type] IN " +  selectedADOitems.ToString() + 
                         "And [System.TeamProject] = '" + requestModel.OrganizationName + "' " +
                         "And [System.State] <> 'Closed' " +
                         "Order By [State] Asc, [Changed Date] Desc",
