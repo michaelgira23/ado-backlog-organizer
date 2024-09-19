@@ -294,7 +294,7 @@ function App() {
 
       {error && <div>Error: {error}</div>}
 
-      {results && (
+      {results && results.length > 0 && (
         <div>
           <Title3>Suggested Parents</Title3>
           <ul className={styles.resultsList}>

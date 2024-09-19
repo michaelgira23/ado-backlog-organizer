@@ -26,7 +26,6 @@ app.get("/", (req, res) => {
 });
 
 app.post("/suggestions", async (req, res) => {
-  console.log("suggestions", req.body);
   try {
     const {
       AccessToken,
@@ -50,7 +49,12 @@ app.post("/suggestions", async (req, res) => {
       workItemTypeString
     );
 
-    const results = await findSimilarWorkItems(WorkItemTitle, workItems);
+    const results = (await findSimilarWorkItems(WorkItemTitle, workItems)).map(
+      (result) => ({
+        ...result,
+        linkUrl: `https://dev.azure.com/${OrganizationName}/${ProjectName}/_workitems/edit/${result.id}/`,
+      })
+    );
 
     res.json({ success: true, results });
   } catch (error) {
