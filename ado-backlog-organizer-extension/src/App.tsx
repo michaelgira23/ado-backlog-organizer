@@ -98,9 +98,11 @@ function App() {
       <li>
         <div className={styles.resultsItem}>
           <span className={styles.resultId}>
-            <Link href={result.link}>{result.id}</Link>
+            <Link href={result.url}>{result.id}</Link>
           </span>
-          <span className={styles.resultName}>{result.name}</span>
+          <span className={styles.resultName}>
+            {result.fields["System.Title"]}
+          </span>
         </div>
         <Divider />
       </li>
@@ -178,39 +180,42 @@ function App() {
     setError(null);
 
     // Mock backend for now
-    setTimeout(() => {
-      setResults(exampleResults);
-      setIsLoading(false);
-    }, 5000);
+    // setTimeout(() => {
+    //   setResults(exampleResults);
+    //   setIsLoading(false);
+    // }, 5000);
 
-    // fetch("https://adobacklogorganizermg.azurewebsites.net/api/openTasks", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Accept: "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     AccessToken: pat,
-    //     OrganizationName: organizationName,
-    //     ProjectName: projectName,
-    //     WorkItemTitle: workItemTitle,
-    //     WorkItemDescription: workItemDescription,
-    //     items: workItemBitArray,
-    //     AreaPath: areaPathName,
-    //   }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     if (Array.isArray(data)) {
-    //       setResults(data);
-    //     }
-    //     setIsLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error fetching data:", error);
-    //     setIsLoading(false);
-    //     setError(`Error fetching data. Please try again later. (${error})`);
-    //   });
+    fetch(
+      "https://adobacklogorganizerhackathon-a0gye4a5bbbte8fj.canadacentral-01.azurewebsites.net/suggestions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          AccessToken: pat,
+          OrganizationName: organizationName,
+          ProjectName: projectName,
+          WorkItemTitle: workItemTitle,
+          WorkItemDescription: workItemDescription,
+          WorkItemTypes: workItemBitArray,
+          AreaPath: areaPathName,
+        }),
+      }
+    )
+      .then((response) => response.json())
+      .then(({ results }) => {
+        if (Array.isArray(results)) {
+          setResults(results);
+        }
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
+        setError(`Error fetching data. Please try again later. (${error})`);
+      });
   };
 
   return (

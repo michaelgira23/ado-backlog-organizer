@@ -41,7 +41,7 @@ async function queryWorkItems(
                         WHERE [System.WorkItemType] IN ${workItemTypeString}
                         AND [System.TeamProject] = '${projectName}'
                         AND [System.AreaPath] = '${areaPath}'
-                        AND [System.State] <> 'Closed'
+                        AND [System.State] NOT IN ('Closed', 'Done', 'Resolved', 'Removed')
                         ORDER BY [System.State] ASC, [System.ChangedDate] DESC`,
       },
       {
