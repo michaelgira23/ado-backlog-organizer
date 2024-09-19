@@ -21,6 +21,10 @@ const WorkItemTypeNames = [
   "User Story",
 ];
 
+app.get("/", (req, res) => {
+  res.json({ success: true });
+});
+
 app.post("/suggestions", async (req, res) => {
   console.log("suggestions", req.body);
   try {
