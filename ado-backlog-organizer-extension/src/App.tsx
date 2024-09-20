@@ -1,4 +1,8 @@
 import {
+  Accordion,
+  AccordionHeader,
+  AccordionItem,
+  AccordionPanel,
   Button,
   Divider,
   Dropdown,
@@ -19,10 +23,11 @@ import {
 import { useEffect, useState } from "react";
 
 // Production
-// const apiUrl = 'https://adobacklogorganizerhackathon-a0gye4a5bbbte8fj.canadacentral-01.azurewebsites.net';
+const apiUrl =
+  "https://adobacklogorganizerhackathon-a0gye4a5bbbte8fj.canadacentral-01.azurewebsites.net";
 
 // Development
-const apiUrl = "http://localhost:8080";
+// const apiUrl = "http://localhost:8080";
 
 const workItemTypes = [
   "Bug",
@@ -53,8 +58,14 @@ const useStyles = makeStyles({
     flexDirection: "row",
     gap: "4px",
   },
+  accordion: {
+    margin: 0,
+    padding: 0,
+  },
+  lastFormField: {
+    marginBottom: "16px",
+  },
   search: {
-    marginTop: "20px",
     width: "100%",
   },
   resultsContainer: {
@@ -276,7 +287,7 @@ function App() {
             onChange={(event) => setWorkItemDescription(event.target.value)}
           />
         </Field> */}
-        <Field label="Work Item Type">
+        <Field label="Parent Type">
           <Dropdown
             multiselect={true}
             value={selectedWorkItemTypesDisplay}
@@ -292,36 +303,48 @@ function App() {
             ))}
           </Dropdown>
         </Field>
-        <div className={styles.formRow}>
-          <Field label="Organization Name">
-            <Input
-              placeholder="Organization Name (ex: msazure)"
-              value={organizationName}
-              onChange={(event) => setOrganizationName(event.target.value)}
-            />
-          </Field>
-          <Field label="Project Name">
-            <Input
-              placeholder="Project Name (ex: One)"
-              value={projectName}
-              onChange={(event) => setProjectName(event.target.value)}
-            />
-          </Field>
-        </div>
-        <Field label="Area Path">
-          <Input
-            placeholder="Area Path (ex: One\Compute\CloudConsoles)"
-            value={areaPathName}
-            onChange={(event) => setAreaPathName(event.target.value)}
-          />
-        </Field>
-        <Field label="Personal Access Token">
-          <Input
-            type="password"
-            value={pat}
-            onChange={(event) => setPat(event.target.value)}
-          />
-        </Field>
+        <Accordion collapsible>
+          <AccordionItem value="">
+            <AccordionHeader className={styles.accordion}>
+              Advanced Settings
+            </AccordionHeader>
+            <AccordionPanel className={styles.accordion}>
+              <div className={styles.formRow}>
+                <Field label="Organization Name">
+                  <Input
+                    placeholder="Organization Name (ex: msazure)"
+                    value={organizationName}
+                    onChange={(event) =>
+                      setOrganizationName(event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Project Name">
+                  <Input
+                    placeholder="Project Name (ex: One)"
+                    value={projectName}
+                    onChange={(event) => setProjectName(event.target.value)}
+                  />
+                </Field>
+              </div>
+              <Field label="Area Path">
+                <Input
+                  placeholder="Area Path (ex: One\Compute\CloudConsoles)"
+                  value={areaPathName}
+                  onChange={(event) => setAreaPathName(event.target.value)}
+                />
+              </Field>
+              <Field label="Personal Access Token">
+                <Input
+                  type="password"
+                  value={pat}
+                  onChange={(event) => setPat(event.target.value)}
+                  className={styles.lastFormField}
+                />
+              </Field>
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
         <Button
           appearance="primary"
           size="large"
