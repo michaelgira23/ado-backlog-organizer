@@ -15,6 +15,7 @@ The browser extension source code is located in `./ado-backlog-organizer-extensi
 To rebuild the browser extension:
 
 ```bash
+npm install
 npm run build
 ```
 
@@ -35,6 +36,7 @@ Since this file is in the `.gitignore`, you can safely put in credentials withou
 To run the backend locally:
 
 ```bash
+npm install
 npm start
 ```
 

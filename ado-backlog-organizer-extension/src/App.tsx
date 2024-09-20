@@ -6,13 +6,23 @@ import {
   Input,
   Link,
   makeStyles,
+  MessageBar,
+  MessageBarBody,
+  MessageBarTitle,
   Option,
   Spinner,
+  Text,
   Textarea,
   Title2,
   Title3,
 } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
+
+// Production
+// const apiUrl = 'https://adobacklogorganizerhackathon-a0gye4a5bbbte8fj.canadacentral-01.azurewebsites.net';
+
+// Development
+const apiUrl = "http://localhost:8080";
 
 const workItemTypes = [
   "Bug",
@@ -23,24 +33,6 @@ const workItemTypes = [
   "Task",
   "Test Case",
   "User Story",
-];
-
-const exampleResults = [
-  {
-    id: 10000000,
-    name: "Feature Title 1",
-    link: "https://dev.azure.com/msazure/One/_workitems/edit/10000000/",
-  },
-  {
-    id: 20000000,
-    name: "Feature Title 2",
-    link: "https://dev.azure.com/msazure/One/_workitems/edit/20000000/",
-  },
-  {
-    id: 30000000,
-    name: "Feature Title 3",
-    link: "https://dev.azure.com/msazure/One/_workitems/edit/30000000/",
-  },
 ];
 
 const useStyles = makeStyles({
@@ -56,9 +48,19 @@ const useStyles = makeStyles({
     flexDirection: "column",
     gap: "8px",
   },
+  formRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "4px",
+  },
   search: {
     marginTop: "20px",
     width: "100%",
+  },
+  resultsContainer: {
+    marginTop: "20px",
+    display: "flex",
+    flexDirection: "column",
   },
   resultsList: {
     listStyleType: "none",
@@ -75,12 +77,36 @@ const useStyles = makeStyles({
   },
 });
 
+interface WorkItem {
+  id: number;
+  rev: number;
+  fields: {
+    "System.State": string;
+    "System.Title": string;
+  };
+  linkUrl: string;
+}
+
+type Results =
+  | {
+      success: true;
+      results: WorkItem[];
+      totalItems: number;
+    }
+  | {
+      success: false;
+      error?: string;
+    };
+
 function App() {
   const styles = useStyles();
 
   // Form state
   const [workItemTitle, setWorkItemTitle] = useState("");
   const [workItemDescription, setWorkItemDescription] = useState("");
+  // Display is used for the string that is displayed when dropdown is closed
+  const [selectedWorkItemTypesDisplay, setSelectedWorkItemTypesDisplay] =
+    useState("");
   const [selectedWorkItemTypes, setSelectedWorkItemTypes] = useState<string[]>(
     []
   );
@@ -91,14 +117,16 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Results | null>(null);
 
   function ResultItem({ result }: { result: any }) {
     return (
       <li>
         <div className={styles.resultsItem}>
           <span className={styles.resultId}>
-            <Link href={result.linkUrl}>{result.id}</Link>
+            <Link href={result.linkUrl} target="_blank">
+              {result.id}
+            </Link>
           </span>
           <span className={styles.resultName}>
             {result.fields["System.Title"]}
@@ -109,6 +137,7 @@ function App() {
     );
   }
 
+  // Restore the state from local storage upon init
   useEffect(() => {
     try {
       const storedStateStr = localStorage.getItem("ADO-BACKLOG-ORGANIZER");
@@ -117,16 +146,28 @@ function App() {
         setWorkItemTitle(storedState.workItemTitle);
         setWorkItemDescription(storedState.workItemDescription);
         setSelectedWorkItemTypes(storedState.selectedWorkItemTypes);
+        setSelectedWorkItemTypesDisplay(
+          storedState.selectedWorkItemTypes.join(", ")
+        );
         setOrganizationName(storedState.organizationName);
         setProjectName(storedState.projectName);
         setAreaPathName(storedState.areaPathName);
         setPat(storedState.pat);
+      }
+
+      const storedResultsStr = localStorage.getItem(
+        "ADO-BACKLOG-ORGANIZER-RESULTS"
+      );
+      if (storedResultsStr) {
+        const storedResults = JSON.parse(storedResultsStr);
+        setResults(storedResults);
       }
     } catch (err) {
       console.error("Error loading state from local storage:", err);
     }
   }, []);
 
+  // Save the state to local storage
   useEffect(() => {
     try {
       const state = {
@@ -155,10 +196,12 @@ function App() {
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any) => {
       chrome.tabs.sendMessage(tabs[0].id, "get-params", (response: any) => {
-        // do something with the response if you want.
-        console.log(response);
-        setOrganizationName(response.organization);
-        setProjectName(response.project);
+        if (response.organization) {
+          setOrganizationName(response.organization);
+        }
+        if (response.project) {
+          setProjectName(response.project);
+        }
       });
     });
   }, []);
@@ -179,37 +222,31 @@ function App() {
     setIsLoading(true);
     setError(null);
 
-    // Mock backend for now
-    // setTimeout(() => {
-    //   setResults(exampleResults);
-    //   setIsLoading(false);
-    // }, 5000);
-
-    fetch(
-      "https://adobacklogorganizerhackathon-a0gye4a5bbbte8fj.canadacentral-01.azurewebsites.net/suggestions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          AccessToken: pat,
-          OrganizationName: organizationName,
-          ProjectName: projectName,
-          WorkItemTitle: workItemTitle,
-          WorkItemDescription: workItemDescription,
-          WorkItemTypes: workItemBitArray,
-          AreaPath: areaPathName,
-        }),
-      }
-    )
+    fetch(`${apiUrl}/suggestions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        AccessToken: pat,
+        OrganizationName: organizationName,
+        ProjectName: projectName,
+        WorkItemTitle: workItemTitle,
+        WorkItemDescription: workItemDescription,
+        WorkItemTypes: workItemBitArray,
+        AreaPath: areaPathName,
+      }),
+    })
       .then((response) => response.json())
-      .then(({ results }) => {
-        if (Array.isArray(results)) {
-          setResults(results);
-        }
+      .then((results) => {
+        console.log("Results:", results);
+        setResults(results);
         setIsLoading(false);
+        localStorage.setItem(
+          "ADO-BACKLOG-ORGANIZER-RESULTS",
+          JSON.stringify(results)
+        );
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -217,6 +254,9 @@ function App() {
         setError(`Error fetching data. Please try again later. (${error})`);
       });
   };
+
+  const displayError =
+    error || (results && !results.success ? results.error : undefined);
 
   return (
     <div className={styles.root}>
@@ -239,32 +279,35 @@ function App() {
         <Field label="Work Item Type">
           <Dropdown
             multiselect={true}
+            value={selectedWorkItemTypesDisplay}
             selectedOptions={selectedWorkItemTypes}
-            onOptionSelect={(event, data) =>
-              setSelectedWorkItemTypes(data.selectedOptions as any)
-            }
+            onOptionSelect={(event, data) => {
+              setSelectedWorkItemTypes([...data.selectedOptions] as any);
+              setSelectedWorkItemTypesDisplay(data.selectedOptions.join(", "));
+            }}
             placeholder="Select work item type(s)"
           >
-            {/* <Option key="all">All Types</Option> */}
             {workItemTypes.map((option) => (
               <Option key={option}>{option}</Option>
             ))}
           </Dropdown>
         </Field>
-        <Field label="Organization Name">
-          <Input
-            placeholder="Organization Name (ex: msazure)"
-            value={organizationName}
-            onChange={(event) => setOrganizationName(event.target.value)}
-          />
-        </Field>
-        <Field label="Project Name">
-          <Input
-            placeholder="Project Name (ex: One)"
-            value={projectName}
-            onChange={(event) => setProjectName(event.target.value)}
-          />
-        </Field>
+        <div className={styles.formRow}>
+          <Field label="Organization Name">
+            <Input
+              placeholder="Organization Name (ex: msazure)"
+              value={organizationName}
+              onChange={(event) => setOrganizationName(event.target.value)}
+            />
+          </Field>
+          <Field label="Project Name">
+            <Input
+              placeholder="Project Name (ex: One)"
+              value={projectName}
+              onChange={(event) => setProjectName(event.target.value)}
+            />
+          </Field>
+        </div>
         <Field label="Area Path">
           <Input
             placeholder="Area Path (ex: One\Compute\CloudConsoles)"
@@ -285,22 +328,37 @@ function App() {
           className={styles.search}
           onClick={search}
           disabled={isLoading}
+          icon={isLoading ? <Spinner size="tiny" /> : undefined}
         >
-          {isLoading ? "Loading..." : "Search"}
+          {isLoading ? "Combing the Backlog..." : "Search"}
         </Button>
       </form>
 
-      {isLoading && <Spinner label="Good things come to those who wait..." />}
+      {displayError && (
+        <MessageBar intent="error">
+          <MessageBarBody>
+            <MessageBarTitle>Whoops!</MessageBarTitle>
+            {displayError}
+          </MessageBarBody>
+        </MessageBar>
+      )}
 
-      {error && <div>Error: {error}</div>}
-
-      {results && results.length > 0 && (
-        <div>
+      {results && results.success && (
+        <div className={styles.resultsContainer}>
           <Title3>Suggested Parents</Title3>
-          <ul className={styles.resultsList}>
-            {results &&
-              results.map((result: any) => <ResultItem result={result} />)}
-          </ul>
+          <Text>
+            Looked through <Text weight="bold">{results.totalItems}</Text> work
+            items
+          </Text>
+          {results.results.length > 0 && (
+            <ul className={styles.resultsList}>
+              {results &&
+                results.results.map((result: any) => (
+                  <ResultItem result={result} />
+                ))}
+            </ul>
+          )}
+          {results.results.length === 0 && <Text>No results found</Text>}
         </div>
       )}
     </div>

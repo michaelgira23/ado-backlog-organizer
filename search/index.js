@@ -49,6 +49,16 @@ app.post("/suggestions", async (req, res) => {
       workItemTypeString
     );
 
+    console.log("workItems", workItems);
+
+    if (!workItems.length) {
+      res.json({
+        success: false,
+        error: 'No work items found! Is your PAT valid?'
+      });
+      return;
+    }
+
     const results = (await findSimilarWorkItems(WorkItemTitle, workItems)).map(
       (result) => ({
         ...result,
@@ -56,7 +66,7 @@ app.post("/suggestions", async (req, res) => {
       })
     );
 
-    res.json({ success: true, results });
+    res.json({ success: true, results, totalItems: workItems.length });
   } catch (error) {
     console.error(error);
     res.json({ success: false, error: error.message });
