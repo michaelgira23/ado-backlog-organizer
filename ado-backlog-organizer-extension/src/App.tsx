@@ -7,7 +7,9 @@ import {
   Divider,
   Dropdown,
   Field,
+  InfoLabel,
   Input,
+  LabelProps,
   Link,
   makeStyles,
   MessageBar,
@@ -61,6 +63,9 @@ const useStyles = makeStyles({
   accordion: {
     margin: 0,
     padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
   },
   lastFormField: {
     marginBottom: "16px",
@@ -305,9 +310,7 @@ function App() {
         </Field>
         <Accordion collapsible>
           <AccordionItem value="">
-            <AccordionHeader className={styles.accordion}>
-              Advanced Settings
-            </AccordionHeader>
+            <AccordionHeader>Advanced Settings</AccordionHeader>
             <AccordionPanel className={styles.accordion}>
               <div className={styles.formRow}>
                 <Field label="Organization Name">
@@ -334,7 +337,30 @@ function App() {
                   onChange={(event) => setAreaPathName(event.target.value)}
                 />
               </Field>
-              <Field label="Personal Access Token">
+              <Field
+                label={
+                  {
+                    children: (_: unknown, props: LabelProps) => (
+                      <InfoLabel
+                        {...props}
+                        info={
+                          <>
+                            A PAT is required to use this.{" "}
+                            <Link
+                              href="https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows "
+                              target="_blank"
+                            >
+                              Learn how to generate one
+                            </Link>
+                          </>
+                        }
+                      >
+                        Personal Access Token
+                      </InfoLabel>
+                    ),
+                  } as any
+                }
+              >
                 <Input
                   type="password"
                   value={pat}
