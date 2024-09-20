@@ -98,7 +98,7 @@ function App() {
       <li>
         <div className={styles.resultsItem}>
           <span className={styles.resultId}>
-            <Link href={result.url}>{result.id}</Link>
+            <Link href={result.linkUrl}>{result.id}</Link>
           </span>
           <span className={styles.resultName}>
             {result.fields["System.Title"]}
@@ -229,13 +229,13 @@ function App() {
             onChange={(event) => setWorkItemTitle(event.target.value)}
           />
         </Field>
-        <Field label="Work Item Description">
+        {/* <Field label="Work Item Description">
           <Textarea
             placeholder="Optional Description"
             value={workItemDescription}
             onChange={(event) => setWorkItemDescription(event.target.value)}
           />
-        </Field>
+        </Field> */}
         <Field label="Work Item Type">
           <Dropdown
             multiselect={true}
